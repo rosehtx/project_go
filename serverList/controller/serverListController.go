@@ -30,14 +30,14 @@ func (returnData ServerListReturnData) AddAndUpdateServer(c *gin.Context) {
 
 	service.AddAndUpdateServerList(serverId, serverType, ip, port,true)
 
-	returnData.OtherData = service.OtherData
+	returnData.OtherData = service.OtherServerListData
 	c.JSON(http.StatusOK, returnData)
 
 }
 
 func (returnData ServerListReturnData) GetList(c *gin.Context) {
 	returnData   = initReturnData()
-	returnData.OtherData = service.OtherData
+	returnData.OtherData = service.OtherServerListData
 	c.JSON(http.StatusOK, returnData)
 }
 

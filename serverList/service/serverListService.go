@@ -1,7 +1,7 @@
 package service
 
 import (
-	"serverList/dao"
+	daoServerList "serverList/dao"
 )
 
 type Server struct {
@@ -17,9 +17,7 @@ type ServerList struct {
 //用来存放server和type的map集合
 var serverTypeMap = make(map[int]map[int]struct{})
 
-var OtherData []*ServerList
-
-var daoServerList dao.ServerList
+var OtherServerListData []*ServerList
 
 func AddAndUpdateServerList(serverId int, serverType int, ip string, port int,isOperateMysql bool) {
 	//判断serverid是否已经定义
@@ -38,28 +36,40 @@ func AddAndUpdateServerList(serverId int, serverType int, ip string, port int,is
 			serverId,
 			[]Server{server},
 		}
-		OtherData = append(OtherData, serverList)
+		OtherServerListData = append(OtherServerListData, serverList)
+		//这边对数据库进行新增
+		if isOperateMysql == true {
+			daoServerList.InsertServerListData(serverId,ip,port,serverType)
+		}
 	} else {
 		//server已有但是 type没有
 		if checkServerType == false {
-			for i, v := range OtherData {
+			for i, v := range OtherServerListData {
 				if v.ServerId == serverId {
-					OtherData[i].Server = append(OtherData[i].Server, Server{serverType,
+					OtherServerListData[i].Server = append(OtherServerListData[i].Server, Server{serverType,
 						ip,
 						port})
 					//存放type
 					serverTypeMap[serverId][serverType] = struct{}{}
+					//这边对数据库进行新增
+					if isOperateMysql == true {
+						daoServerList.InsertServerListData(serverId,ip,port,serverType)
+					}
 					goto cancelFor
 				}
 			}
 		} else {
 			//都有进进行更新
-			for i, v := range OtherData {
+			for i, v := range OtherServerListData {
 				if v.ServerId == serverId {
 					for severI, severV := range v.Server {
 						if severV.Type == serverType {
-							OtherData[i].Server[severI].Ip = ip
-							OtherData[i].Server[severI].Port = port
+							OtherServerListData[i].Server[severI].Ip = ip
+							OtherServerListData[i].Server[severI].Port = port
+							//这边对数据库进行更新
+							if isOperateMysql == true {
+								daoServerList.UpdateServerListData(serverId,ip,port,serverType)
+							}
 							goto cancelFor
 						}
 					}

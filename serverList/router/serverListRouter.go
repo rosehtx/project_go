@@ -7,7 +7,7 @@ import (
 )
 
 func initServerListRouter(e *gin.Engine) {
-	routeServer := &controller.ServerListReturnData{}
+	routeServer := controller.ServerListReturnData{}
 	//(1)注册方法一  利用反射
 	Routers = append(Routers, Router{
 		path:       "/server/addAndUpdateServer", //路由

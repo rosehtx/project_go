@@ -21,7 +21,7 @@ var OtherData []*ServerList
 
 var daoServerList dao.ServerList
 
-func AddAndUpdateServerList(serverId int, serverType int, ip string, port int) {
+func AddAndUpdateServerList(serverId int, serverType int, ip string, port int,isOperateMysql bool) {
 	//判断serverid是否已经定义
 	allServerTypeMap, checkServerId := serverTypeMap[serverId]
 	_, checkServerType := allServerTypeMap[serverType]
@@ -77,7 +77,9 @@ func InitServerList() (bool, string) {
 	}
 
 	for i := 0; i < len(*ss); i++ {
-		AddAndUpdateServerList((*ss)[i].ServerId, (*ss)[i].Type, (*ss)[i].Ip, (*ss)[i].Port)
+		AddAndUpdateServerList((*ss)[i].ServerId, (*ss)[i].Type, (*ss)[i].Ip, (*ss)[i].Port,false)
 	}
 	return true, ""
 }
+
+

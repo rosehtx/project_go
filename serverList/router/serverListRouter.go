@@ -14,7 +14,6 @@ func initServerListRouter(e *gin.Engine) {
 		httpMethod: "get",                        //http方法 get post
 		MethodName: "AddAndUpdateServer",         //方法名
 		Controller: reflect.ValueOf(routeServer), //方法
-		//Args :  []reflect.Type 	//参数类型
 	})
 
 	//(2)注册方法二  直接注册不过这边有新的controller话不停的添加

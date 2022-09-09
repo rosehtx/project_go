@@ -22,7 +22,7 @@ func main() {
 		return
 	}
 
-	//起http服务
+	//起http服务1
 	go startServer()
 
 	// 利用通道读取的阻塞来执行上面协程

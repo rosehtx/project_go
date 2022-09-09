@@ -43,6 +43,7 @@ func pingDb(sqlDB *sql.DB) {
 	for {
 		select {
 		case <-tickerDb.C:
+			fmt.Println("mysql ping")
 			sqlDB.Ping()
 		default:
 		}

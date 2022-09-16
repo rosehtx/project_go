@@ -20,6 +20,7 @@ func (returnData ServerListReturnData) AddAndUpdateServer(c *gin.Context) {
 	serverType, _ := strconv.Atoi(c.DefaultQuery("type", "0"))
 	ip := c.Query("ip")
 	port, _ := strconv.Atoi(c.DefaultQuery("port", "0"))
+	status, _ := strconv.Atoi(c.DefaultQuery("status", "2"))
 
 	if serverId == 0 || serverType == 0 || ip == "" || port == 0 {
 		returnData.Status = enum.STATUS_FAIL
@@ -28,7 +29,7 @@ func (returnData ServerListReturnData) AddAndUpdateServer(c *gin.Context) {
 		return
 	}
 
-	service.AddAndUpdateServerList(serverId, serverType, ip, port,true)
+	service.AddAndUpdateServerList(serverId, serverType, ip, port,status,true)
 
 	returnData.OtherData = service.OtherServerListData
 	c.JSON(http.StatusOK, returnData)

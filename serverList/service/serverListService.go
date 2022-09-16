@@ -5,9 +5,10 @@ import (
 )
 
 type Server struct {
-	Type int    `json:"type"`
-	Ip   string `json:"ip"`
-	Port int    `json:"port"`
+	Type   int    `json:"type"`
+	Ip     string `json:"ip"`
+	Port   int    `json:"port"`
+	Status int    `json:"status"`
 }
 type ServerList struct {
 	ServerId int      `json:"serverId"`
@@ -19,7 +20,7 @@ var serverTypeMap = make(map[int]map[int]struct{})
 
 var OtherServerListData []*ServerList
 
-func AddAndUpdateServerList(serverId int, serverType int, ip string, port int,isOperateMysql bool) {
+func AddAndUpdateServerList(serverId int, serverType int, ip string, port int,status int,isOperateMysql bool) {
 	//判断serverid是否已经定义
 	allServerTypeMap, checkServerId := serverTypeMap[serverId]
 	_, checkServerType := allServerTypeMap[serverType]
@@ -31,6 +32,7 @@ func AddAndUpdateServerList(serverId int, serverType int, ip string, port int,is
 			serverType,
 			ip,
 			port,
+			status,
 		}
 		serverList := &ServerList{
 			serverId,
@@ -39,7 +41,7 @@ func AddAndUpdateServerList(serverId int, serverType int, ip string, port int,is
 		OtherServerListData = append(OtherServerListData, serverList)
 		//这边对数据库进行新增
 		if isOperateMysql == true {
-			daoServerList.InsertServerListData(serverId,ip,port,serverType)
+			daoServerList.InsertServerListData(serverId,ip,port,serverType,status)
 		}
 	} else {
 		//server已有但是 type没有
@@ -48,12 +50,13 @@ func AddAndUpdateServerList(serverId int, serverType int, ip string, port int,is
 				if v.ServerId == serverId {
 					OtherServerListData[i].Server = append(OtherServerListData[i].Server, Server{serverType,
 						ip,
-						port})
+						port,
+						status})
 					//存放type
 					serverTypeMap[serverId][serverType] = struct{}{}
 					//这边对数据库进行新增
 					if isOperateMysql == true {
-						daoServerList.InsertServerListData(serverId,ip,port,serverType)
+						daoServerList.InsertServerListData(serverId,ip,port,serverType,status)
 					}
 					goto cancelFor
 				}
@@ -66,9 +69,10 @@ func AddAndUpdateServerList(serverId int, serverType int, ip string, port int,is
 						if severV.Type == serverType {
 							OtherServerListData[i].Server[severI].Ip = ip
 							OtherServerListData[i].Server[severI].Port = port
+							OtherServerListData[i].Server[severI].Status = status
 							//这边对数据库进行更新
 							if isOperateMysql == true {
-								daoServerList.UpdateServerListData(serverId,ip,port,serverType)
+								daoServerList.UpdateServerListData(serverId,ip,port,serverType,status)
 							}
 							goto cancelFor
 						}
@@ -87,7 +91,7 @@ func InitServerList() (bool, string) {
 	}
 
 	for i := 0; i < len(*ss); i++ {
-		AddAndUpdateServerList((*ss)[i].ServerId, (*ss)[i].Type, (*ss)[i].Ip, (*ss)[i].Port,false)
+		AddAndUpdateServerList((*ss)[i].ServerId, (*ss)[i].Type, (*ss)[i].Ip, (*ss)[i].Port,(*ss)[i].Status,false)
 	}
 	return true, ""
 }

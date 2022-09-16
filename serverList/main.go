@@ -22,6 +22,13 @@ func main() {
 		return
 	}
 
+	//初始化公告数据
+	resInitNotice, resInitNoticeMsg := service.InitServerNotice()
+	if resInitNotice == false {
+		fmt.Println(resInitNoticeMsg)
+		return
+	}
+
 	//起http服务1
 	go startServer()
 

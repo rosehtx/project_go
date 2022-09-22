@@ -6,6 +6,7 @@ type ServerNotice struct {
 	Notice   	string `gorm:"column:notice"`
 	StartTime   uint64 `gorm:"column:start_time"`
 	EndTime     uint64 `gorm:"column:end_time"`
+	IsEnd       int8   `gorm:"column:is_end"`
 }
 
 func (ServerNotice) TableName() string {

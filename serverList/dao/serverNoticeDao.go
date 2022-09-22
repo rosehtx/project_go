@@ -1,13 +1,18 @@
 package dao
 
 import (
+	"fmt"
 	"gorm.io/gorm"
+	"serverList/enum"
 	"serverList/model"
+	"time"
 )
 
-func GetAllServerNoticeData() (*gorm.DB, *[]model.ServerNotice) {
+func GetAllNotEndServerNoticeData() (*gorm.DB,[]model.ServerNotice) {
 	var allNotice []model.ServerNotice
-	result := model.Db.Find(&allNotice)
-	return result, &allNotice
+	result := model.Db.Where("is_end = ? and end_time > ?", enum.NOTICE_IS_END_NO,time.Now().Unix()).
+		Find(&allNotice)
+	fmt.Println(allNotice)
+	return result,allNotice
 }
 

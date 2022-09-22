@@ -31,6 +31,7 @@ func InitRouter() *gin.Engine  {
 
 func Bind(e *gin.Engine) {
 	initServerListRouter(e)  //注册serverList的router
+	initServerNoticeRouter(e)  //注册serverList的router
 	//(1)注册方法一  利用反射
 	for _, route := range Routers {
 		if(route.httpMethod == "get"){

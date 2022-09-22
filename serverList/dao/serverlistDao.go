@@ -6,10 +6,10 @@ import (
 )
 
 // GetAllServerListData 获取所有的serverList数据
-func GetAllServerListData() (*gorm.DB, *[]model.ServerList) {
+func GetAllServerListData() (*gorm.DB, []model.ServerList) {
 	var allServer []model.ServerList
 	result := model.Db.Find(&allServer)
-	return result, &allServer
+	return result, allServer
 }
 
 //InsertServerListData 新增serverList数据

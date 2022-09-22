@@ -12,8 +12,15 @@ func main() {
 	var mysqlChanWg sync.WaitGroup
 	checkMysqlChan := make(chan string, 1)
 	mysqlChanWg.Add(1)
-	go model.InitModel(checkMysqlChan, &mysqlChanWg)
+	go model.InitModel(&checkMysqlChan, &mysqlChanWg)
 	mysqlChanWg.Wait()
+
+	checkMsg := <-checkMysqlChan
+	fmt.Println("init model result :" + checkMsg)
+	if checkMsg != "success"{
+		fmt.Println(checkMsg)
+		return
+	}
 
 	//初始化serverlist数据
 	resInitServer, resInitServerMsg := service.InitServerList()

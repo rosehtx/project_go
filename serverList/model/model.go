@@ -13,7 +13,7 @@ import (
 
 var Db *gorm.DB
 
-func InitModel(ch chan string, wg *sync.WaitGroup) {
+func InitModel(ch *chan string, wg *sync.WaitGroup) {
 	fmt.Println("----init mysql start----")
 	//链接mysql
 	dsn := config.MysqlUser + ":" + config.MysqlPass + "@tcp(" + config.MysqlIp + ":" + strconv.Itoa(config.MysqlPort) + ")/serverlist?charset=utf8mb4&parseTime=True&loc=Local"
@@ -23,18 +23,18 @@ func InitModel(ch chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	if err != nil {
-		ch <- err.Error()
+		*ch <- err.Error()
 		return
 	}
 	sqlDB, errDb := Db.DB()
 	if errDb != nil {
-		ch <- errDb.Error()
+		*ch <- errDb.Error()
 		return
 	}
 	fmt.Println("----ticker ping mysql start----")
 	go pingDb(sqlDB)
 	fmt.Println("----ticker ping mysql end----")
-
+	*ch <- "success"
 	fmt.Println("----init mysql end----")
 }
 

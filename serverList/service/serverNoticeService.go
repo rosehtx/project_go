@@ -3,9 +3,13 @@ package service
 import (
 	"fmt"
 	"gorm.io/gorm"
+	"io/ioutil"
+	"net/http"
+	"serverList/config"
 	daoNotice "serverList/dao"
 	"serverList/enum"
 	"serverList/model"
+	"strings"
 	"time"
 )
 
@@ -29,26 +33,43 @@ func InitServerNotice() (bool, string) {
 		for i := 0; i < len(AllNotice); i++ {
 			//先注册到map里
 			ServerNoticeMap[AllNotice[i].ServerId] = AllNotice[i].Notice
-			go func(notice model.ServerNotice) {
+			go func(i int) {
 				tickerDb := time.NewTicker(2 * time.Second)
 				for  {
 					select {
 					case <-tickerDb.C:
 						now := time.Now().Unix()
-						if notice.EndTime < uint64(now) || notice.IsEnd == enum.NOTICE_IS_END_YES{
-							delete(ServerNoticeMap,notice.ServerId)
+						if AllNotice[i].EndTime < uint64(now) || AllNotice[i].IsEnd == enum.NOTICE_IS_END_YES{
+							//请求后台更新状态
+							args := make([]string, 0)
+							args = append(args,"ServerId=1")
+							response,_     := http.Get(config.NoticeUrl + "?" + strings.Join(args,"&"))
+							body, _        := ioutil.ReadAll(response.Body)
+							fmt.Println(string(body))
+							delete(ServerNoticeMap,AllNotice[i].ServerId)
 							goto endNotice
 						}
 					default:
 					}
 				}
 			endNotice:
-				fmt.Printf("server : %v notice is end",notice.ServerId)
-			}(AllNotice[i])
+				fmt.Printf("server : %v notice is end",AllNotice[i].ServerId)
+			}(i)
 		}
 	}
 	fmt.Println("end init notice")
 	return true, ""
+}
+
+func EndServerNotice(serverId int) bool{
+	for i:=0 ; i < len(AllNotice); i++  {
+		if serverId == AllNotice[i].ServerId {
+			AllNotice[i].IsEnd = enum.NOTICE_IS_END_YES
+			goto endFor
+		}
+	}
+endFor:
+	return true
 }
 
 

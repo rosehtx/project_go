@@ -5,4 +5,6 @@ var (
 	MysqlPort int		= 3306
 	MysqlUser string	= "root"
 	MysqlPass string	= "root"
+
+	NoticeUrl string    = "http://192.168.44.127/test/test.php"
 )

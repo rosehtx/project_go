@@ -31,6 +31,20 @@ func (noticeReturnData ServerNoticeReturnData) GetNotice (c *gin.Context){
 	c.JSON(http.StatusOK, noticeReturnData)
 }
 
+//直接结束公告
+func (noticeReturnData ServerNoticeReturnData) EndNotice (c *gin.Context){
+	noticeReturnData   = initNoticeReturnData()
+	serverId, _ := strconv.Atoi(c.DefaultQuery("serverId", "0"))
+	if serverId == 0 {
+		noticeReturnData.Status = enum.STATUS_FAIL
+		noticeReturnData.Msg 	  = config.ParamError
+		c.JSON(http.StatusOK, noticeReturnData)
+		return
+	}
+	service.EndServerNotice(serverId)
+	c.JSON(http.StatusOK, noticeReturnData)
+}
+
 func initNoticeReturnData() ServerNoticeReturnData {
 	return ServerNoticeReturnData{
 		CommonReturnData:CommonReturnData{

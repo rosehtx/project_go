@@ -16,6 +16,8 @@ func main() {
 	mysqlChanWg.Wait()
 
 	checkMsg := <-checkMysqlChan
+	//不用了可以关闭哦
+	close(checkMysqlChan)
 	fmt.Println("init model result :" + checkMsg)
 	if checkMsg != "success"{
 		fmt.Println(checkMsg)

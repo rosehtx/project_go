@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+//注重要 : 带上go项目的完整路径，跨package import的时候会直接引用该路径
+option go_package = "heroServer/proto/rpcPb/hero;hero";
+
+package hero;
+
+import "equip.proto";
+
+enum HeroType {
+  DEFAULT   = 0;
+  OFFENCE   = 1;//攻击型
+  DEFENSE   = 2;//防御
+  TREAT     = 3;//治疗
+  SHIELD    = 4;//护盾
+}
+//数值类型
+enum NumericalValueType {
+  NV_DEFAULT   = 0;
+  NV_OFFENCE   = 1;//攻击型
+  NV_DEFENSE   = 2;//防御
+  NV_SPEED     = 3;//速度
+  NV_TREAT     = 4;//治疗
+  NV_SHIELD    = 5;//护盾
+}
+//数值
+message NumericalValue {
+  NumericalValueType type = 1;
+  uint64 value            = 2;//数值
+}
+
+message Hero {
+  uint64 id                               = 1;
+  string name                             = 2;
+  uint64 userId                           = 3;
+  HeroType heroType                       = 4;//英雄类型
+  repeated NumericalValue numericalValue  = 5;//数值数据
+  repeated equip.Equip equip              = 6;//装备
+}
+
+service GetUserHero {
+  rpc GetUserHero (GetUserHeroRequest) returns (GetUserHeroResponse) {}
+}
+
+message GetUserHeroRequest {
+  uint32 id = 1;
+}
+
+message GetUserHeroResponse {
+  string name         = 1;
+  uint32 age          = 2;
+  repeated Hero hero  = 3;
+}
+
+

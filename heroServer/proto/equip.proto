@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package = "heroServer/proto/rpcPb/equip;equip";
+
+package equip;
+
+enum EquipType {
+  DEFAULT   = 0;
+  UP        = 1;//上衣
+  DOWN      = 2;//下装
+  SHOE      = 3;//鞋子
+}
+
+//装备
+message Equip {
+  uint64 id                               = 1;
+  string name                             = 2;
+  EquipType equipType                     = 3;//类型
+}
+
+

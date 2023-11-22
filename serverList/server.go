@@ -4,19 +4,11 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"serverList/router"
 )
 
 type Login struct {
 	User     string `form:"user" json:"user" xml:"user"  binding:"required"`
 	Password string `form:"password" json:"password" xml:"password"`
-}
-
-func startServer() {
-	r := router.InitRouter()
-	
-	//r.POST("/gin/test",test)
-	r.Run(":8090")
 }
 
 func test(c *gin.Context) {

@@ -8,3 +8,12 @@ var (
 
 	NoticeUrl string    = "http://192.168.44.127/test/test.php"
 )
+
+//rabbitmq配置
+const (
+	RMQ_IP 		= "172.19.60.19"
+	RMQ_PORT 	= 5672
+	RMQ_VHOST 	= "Testscm2"
+	RMQ_USER 	= "dbadmin"
+	RMQ_PASS 	= "UatdbaduserPwd.8263"
+)

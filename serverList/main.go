@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"serverList/model"
+	"serverList/router"
 	"serverList/service"
 	"sync"
 )
@@ -38,10 +39,17 @@ func main() {
 		return
 	}
 
-	//起http服务1
-	go startServer()
+	//初始化路由 同时注册路由的时候吧rmq初始化了
+	r 	:= router.InitRouter()
+	//r.POST("/gin/test",test)
+	err := r.Run(":8090")
+	if err != nil{
+		fmt.Println("start server error" + err.Error())
+		return
+	}
 
 	// 利用通道读取的阻塞来执行上面协程
-	done := make(chan bool)
-	<-done
+	//done := make(chan bool)
+	//<-done
+	select {}
 }

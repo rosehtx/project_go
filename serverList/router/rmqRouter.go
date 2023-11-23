@@ -9,4 +9,5 @@ import (
 func initRmqRouter(e *gin.Engine) {
 	route := controller.RmqReturnData{}
 	e.GET("/rmq/publishMessage", route.RmqPublishMessage)
+	e.GET("/rmq/test", route.TestRmq)
 }

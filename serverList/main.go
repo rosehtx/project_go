@@ -39,7 +39,14 @@ func main() {
 		return
 	}
 
-	//初始化路由 同时注册路由的时候吧rmq初始化了
+	//初始化rmq
+	_ , rmqError := service.NewRabbitMQConnectionPool(5)
+	if rmqError != nil{
+		fmt.Println("start server error" + rmqError.Error())
+		return
+	}
+
+	//初始化路由
 	r 	:= router.InitRouter()
 	//r.POST("/gin/test",test)
 	err := r.Run(":8090")

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"serverList/config"
 	"serverList/model"
 	"serverList/router"
 	"serverList/service"
@@ -40,7 +41,7 @@ func main() {
 	}
 
 	//初始化rmq
-	_ , rmqError := service.NewRabbitMQConnectionPool(5)
+	_ , rmqError := service.NewRabbitMQConnectionPool(config.RMQ_CON_NUM)
 	if rmqError != nil{
 		fmt.Println("start server error" + rmqError.Error())
 		return

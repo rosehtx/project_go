@@ -17,5 +17,5 @@ const (
 	RMQ_USER 		= "dbadmin"
 	RMQ_PASS 		= "UatdbaduserPwd.8263"
 	RMQ_CON_NUM 	= 5 //rmq 连接池数量
-	RMQ_CHANNEL_NUM = 5//rmq 每个连接对应channel数量
+	RMQ_CHANNEL_NUM = 2//rmq 每个连接对应channel数量
 )

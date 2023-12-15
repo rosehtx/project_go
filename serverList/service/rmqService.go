@@ -63,7 +63,6 @@ func NewRabbitMQChannelPool(conn *amqp.Connection,num int) (*RabbitMQChannelPool
 	fmt.Println("创建第"+strconv.Itoa(num + 1)+"连接的channel通道\n")
 	//channel的池子处理
 	for i := 0; i < config.RMQ_CHANNEL_NUM; i++ {
-		fmt.Printf("%v",i)
 		channel, channelErr := conn.Channel()
 		if channelErr != nil{
 			fmt.Println("创建rabbitmq通道error"+channelErr.Error())
@@ -78,20 +77,23 @@ func NewRabbitMQChannelPool(conn *amqp.Connection,num int) (*RabbitMQChannelPool
 	}, nil
 }
 
-// GetConnection 从连接池获取一个 RabbitMQ 连接
-func (p *RabbitMQConnectionPool) GetConnection() (*amqp.Connection, error) {
+// GetConnection 从连接池获取一个 RabbitMQ 连接,
+func (p *RabbitMQConnectionPool) GetConnection() (*amqp.Connection,error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	select {
 		case conn := <-p.pool:
 			p.available--
-			fmt.Printf("获取一个rmq连接剩余:%v \n",p.available)
+			fmt.Printf("conn 获取一个rmq连接剩余:%v \n",p.available)
 			return conn, nil
 		default:
-			//return nil, fmt.Errorf("没有可用的连接")
-			//这边可以临时生成，放回池子如果超出数量则直接删除
-
+			/**
+				可以有俩种方式处理
+				1.直接返回没有可用连接，比较便捷，防止创建过多连接且未释放
+				2.重新创建新的连接
+			 */
+			return nil, fmt.Errorf("没有可用的连接")
 	}
 }
 
@@ -100,72 +102,65 @@ func (p *RabbitMQConnectionPool) ReleaseConnection(conn *amqp.Connection) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	if p.available < p.poolSize {
+	//数量小于池子总数 既定的数量
+	if p.available < p.poolSize{
 		p.pool <- conn
 		p.available++
-		fmt.Printf("放回一个rmq连接剩余:%v \n",p.available)
+		fmt.Printf("conn 放回一个rmq连接剩余:%v,总数:%v \n",p.available,p.poolSize)
 	} else {
 		_ = conn.Close()
 	}
 }
 
 // GetChannel 从连接池获取一个 channel 连接
-func (p *RabbitMQChannelPool) GetChannel() (*amqp.Channel, error) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+func (p *RabbitMQConnectionPool) GetChannel() (*amqp.Connection,*amqp.Channel, error) {
+	conn,err  := p.GetConnection()
+	if err != nil {
+		return nil, nil,err
+	}
+
+	p.channelPool[conn].mu.Lock()
+	defer p.channelPool[conn].mu.Unlock()
+	//获取完channel直接吧连接放回池子 提升并发能力
+	p.ReleaseConnection(conn)
 
 	select {
-	case conn := <-p.pool:
-		p.available--
-		fmt.Printf("获取一个rmq channel:%v \n",p.available)
-		return conn, nil
+	case channel := <-p.channelPool[conn].pool:
+		p.channelPool[conn].available--
+		fmt.Printf("获取一个rmq channel:%v \n",p.channelPool[conn].available)
+		return conn , channel, nil
 	default:
-		return nil, fmt.Errorf("没有可用的channel")
+		//return nil, nil ,fmt.Errorf("没有可用的channel")
+		channel, channelErr := conn.Channel()
+		if channelErr != nil{
+			fmt.Println("创建rabbitmq通道error"+channelErr.Error())
+			return nil, nil ,fmt.Errorf("没有可用的channel")
+		}
+		fmt.Printf("创建一个新的channel:%v \n",p.channelPool[conn].available)
+		return conn , channel, nil
 	}
 }
 
 // ReleaseChannel 将连接放回连接池
-func (p *RabbitMQChannelPool) ReleaseChannel(channel *amqp.Channel) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
+func (p *RabbitMQConnectionPool) ReleaseChannel(conn *amqp.Connection , channel *amqp.Channel) {
+	p.channelPool[conn].mu.Lock()
+	defer p.channelPool[conn].mu.Unlock()
 
-	if p.available < p.poolSize {
-		p.pool <- channel
-		p.available++
-		fmt.Printf("放回一个rmq channel剩余:%v \n",p.available)
+	if p.channelPool[conn].available < p.channelPool[conn].poolSize {
+		p.channelPool[conn].pool <- channel
+		p.channelPool[conn].available++
+		fmt.Printf("放回一个rmq channel剩余:%v 总共:%v \n",p.channelPool[conn].available,p.channelPool[conn].poolSize)
 	} else {
 		_ = channel.Close()
 	}
 }
 
-//这边获取了channel之后立马吧 connect放回池子里，便于其他场景获取
-func GetChannel()  (*amqp.Channel,*amqp.Connection){
-	//获取一个连接
-	conn ,err 	:= RabbitMQConnectionPoolPtr.GetConnection()
-	if conn == nil{
-		fmt.Println("rmq连接池获取连接失败:" + err.Error())
-		return nil,nil
-	}
-	// 创建一个通道
-	//var channelErr error
-	channel, channelErr := conn.Channel()
-	if channelErr != nil{
-		fmt.Println(channelErr.Error())
-		poolPtr.ReleaseConnection(conn)
-		return nil,nil
-	}
-	return channel,conn
-}
-
 func RmqBasicPublish(exchange string,routeKey string,msg []byte)  (bool,string){
-	channel,conn := GetChannel()
+	conn,channel,_ := RabbitMQConnectionPoolPtr.GetChannel()
 	if channel == nil{
 		return false,"channel error"
 	}
-	defer channel.Close()
-	//放回连接池
-	poolPtr 	:= GetRabbitMQConnectionPoolPtr()
-	defer poolPtr.ReleaseConnection(conn)
+	defer RabbitMQConnectionPoolPtr.ReleaseChannel(conn,channel)
 
 	// 启用 Confirm 模式
 	if err := channel.Confirm(false); err != nil {
@@ -188,13 +183,12 @@ func RmqBasicPublish(exchange string,routeKey string,msg []byte)  (bool,string){
 
 	// 等待确认
 	if confirmed := <-confirms; confirmed.Ack {
-		fmt.Println("Rabbitmq Message confirmed \n")
+		fmt.Println("Rabbitmq Message confirmed")
 		return true,""
 	} else {
-		log.Println("Failed to confirm message\n")
+		log.Println("Failed to confirm message")
 		return false,"Failed to confirm message"
 	}
-
 }
 
 

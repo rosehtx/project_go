@@ -33,24 +33,27 @@ func (returnData RmqReturnData) RmqPublishMessage(c *gin.Context) {
 
 func (returnData RmqReturnData) TestRmq(c *gin.Context) {
 	// 模拟多个任务需要进行 RabbitMQ 操作 默认启动5个连接的话会有5个获取不到连接
-	taskCount := 10
+	taskCount := 20
 	var wg sync.WaitGroup
-	wg.Add(taskCount)
+	defer func() {
+		fmt.Println("nice ok l")
+	}()
 
-	poolPtr 	:= service.GetRabbitMQConnectionPoolPtr()
+
+	//生成一个测试service.RabbitMQConnectionPoolPtr.GetChannel并发的方法
 	for i := 0; i < taskCount; i++ {
-		go func() {
+		wg.Add(1)
+		go func(c int) {
 			defer wg.Done()
-
 			// 从连接池获取连接
-			conn, err := poolPtr.GetConnection()
+			conn, channel,err := service.RabbitMQConnectionPoolPtr.GetChannel()
 			if err != nil {
 				fmt.Printf("Failed to get RabbitMQ connection from pool: %v \n", err)
 				return
 			}
-			time.Sleep(time.Duration(4)*time.Second)
-			defer poolPtr.ReleaseConnection(conn)
-		}()
+			defer service.RabbitMQConnectionPoolPtr.ReleaseChannel(conn,channel)
+			time.Sleep(time.Duration(2)*time.Second)
+		}(i)
 	}
 
 	// 等待所有任务完成
@@ -59,3 +62,4 @@ func (returnData RmqReturnData) TestRmq(c *gin.Context) {
 	returnData.Msg = "success"
 	c.JSON(http.StatusOK, returnData)
 }
+

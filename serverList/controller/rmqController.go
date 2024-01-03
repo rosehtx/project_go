@@ -25,6 +25,7 @@ func (returnData RmqReturnData) RmqPublishMessage(c *gin.Context) {
 	}
 
 	byteMsg := []byte(msg)
+	//测试用队列后续要改成真实队列
 	service.RmqBasicPublish("odoo_billIn","odoo_billIn",byteMsg)
 	returnData.Status = enum.STATUS_SUCC
 	returnData.Msg = "success"

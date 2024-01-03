@@ -46,6 +46,12 @@ func main() {
 		fmt.Println("start server error" + rmqError.Error())
 		return
 	}
+	//初始化rmq消费者
+	for queueName, _ := range config.RabbitmqBasicConsumer {
+		for i := 0; i < config.RMQ_CONSUME_NUM; i++ {
+			go service.BasicConsumer(queueName)
+		}
+	}
 
 	//初始化路由
 	r 	:= router.InitRouter()

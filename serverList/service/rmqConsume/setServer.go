@@ -1,11 +1,30 @@
 package rmqConsume
 
-import "errors"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type ServerData struct {
 
 }
 
-func (sData *ServerData)  BasicConsumer(queueName string) (bool,error){
-	return true,errors.New("wwwwww")
+type RmqServerData struct {
+	ServerId int `json:"ServerId"`
+	ServerName string `json:"ServerName"`
+}
+
+func (sData *ServerData)  BasicConsumer(msg []byte) (bool,error){
+	data 	:= &RmqServerData{}
+
+	err  	:= json.Unmarshal(msg, &data)
+	if err != nil {
+		fmt.Println(err)
+		return  false,err
+	}
+
+	fmt.Println("ServerData.BasicConsumer")
+	fmt.Println(data)
+
+	return  true,nil
 }

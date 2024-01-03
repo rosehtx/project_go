@@ -18,4 +18,6 @@ const (
 	RMQ_PASS 		= "UatdbaduserPwd.8263"
 	RMQ_CON_NUM 	= 5 //rmq 连接池数量
 	RMQ_CHANNEL_NUM = 2//rmq 每个连接对应channel数量
+	RMQ_QOS 		= 2//qos 一个消费者同时消费的消息数量
+	RMQ_CONSUME_NUM = 1//每个队列对应消费者的数量,最好是1对1消费
 )

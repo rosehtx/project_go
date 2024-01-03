@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
+	"reflect"
 	"serverList/config"
 	"strconv"
 	"sync"
+	"time"
 )
 
 // RabbitMQConnectionPool 包装 RabbitMQ 连接池
@@ -188,6 +190,66 @@ func RmqBasicPublish(exchange string,routeKey string,msg []byte)  (bool,string){
 	} else {
 		log.Println("Failed to confirm message")
 		return false,"Failed to confirm message"
+	}
+}
+
+func BasicConsumer(queueName string){
+	conn, channel, err := RabbitMQConnectionPoolPtr.GetChannel()
+
+	// 关闭 channel，并将连接放回连接池
+	defer RabbitMQConnectionPoolPtr.ReleaseChannel(conn, channel)
+	if err != nil {
+		log.Printf("Failed to get RabbitMQ channel: %v\n", err)
+		time.Sleep(time.Second) // 等待一段时间后重试
+		return
+	}
+
+	// 设置 QoS，确保每个消费者最多同时处理20条消息
+	err = channel.Qos(config.RMQ_QOS, 0, false)
+	if err != nil {
+		log.Printf("Failed to set QoS: %v\n", err)
+		return
+	}
+
+	// 消费消息
+	msgs, consumeErr := channel.Consume(
+		queueName, 			// 队列名称
+		"",        // 消费者标识符，为空表示由 RabbitMQ 自动生成
+		false,     	// 不自动应答
+		false,     	// 不排他
+		false,     	// 不阻塞
+		false,     	// 不等待服务器响应
+		nil,       	// 参数
+	)
+	if consumeErr != nil {
+		log.Printf("Failed to consume messages: %v\n", err)
+	}
+
+	// 处理消息
+	for msg := range msgs {
+		// 处理消息的逻辑
+		rmqConsumer  := config.RabbitmqBasicConsumer[queueName]
+		values 		 := reflect.ValueOf(rmqConsumer).MethodByName("BasicConsumer").Call([]reflect.Value{reflect.ValueOf(msg.Body)})
+
+		result 		:= values[0].Interface().(bool)
+		errResult  	:= values[1].Interface()//error得分开断言
+		var myError error
+		if result ==  false {
+			myError = errResult.(error)
+			fmt.Println("myError : " + myError.Error())
+			//requeue=false消息将被丢弃如果绑定死信则丢弃并扔到死信
+			err = msg.Nack(false,false)
+			if err != nil {
+				log.Printf("Failed to nack message: %v\n", err)
+			}
+			continue
+		}
+
+		// 手动应答
+		err = msg.Ack(false)
+		if err != nil {
+			log.Printf("Failed to acknowledge message: %v\n", err)
+		}
 	}
 }
 

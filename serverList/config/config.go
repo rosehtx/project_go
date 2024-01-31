@@ -1,12 +1,13 @@
 package config
 
-var (
-	MysqlIp string		= "127.0.0.1"
-	MysqlPort int		= 3306
-	MysqlUser string	= "root"
-	MysqlPass string	= "root"
-
-	NoticeUrl string    = "http://192.168.44.127/test/test.php"
+//mysql配置
+const (
+	MysqlIp 		= "127.0.0.1"
+	MysqlPort 		= 3306
+	MysqlUser 		= "root"
+	MysqlPass 		= "root"
+	NoticeUrl     	= "http://192.168.44.127/test/test.php"
+	MysqlConNum 	= 5
 )
 
 //rabbitmq配置

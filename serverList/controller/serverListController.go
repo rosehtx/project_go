@@ -11,11 +11,11 @@ import (
 
 type ServerListReturnData struct {
 	CommonReturnData
-	OtherData []*service.ServerList `json:"data"`
+	OtherData []service.Server `json:"data"`
 }
 
-func (returnData ServerListReturnData) AddAndUpdateServer(c *gin.Context) {
-	returnData   = initReturnData()
+func (returnData ServerListReturnData) AddOrUpdateServerList(c *gin.Context) {
+	returnData = initReturnData()
 	serverId, _ := strconv.Atoi(c.DefaultQuery("serverId", "0"))
 	serverType, _ := strconv.Atoi(c.DefaultQuery("type", "0"))
 	ip := c.Query("ip")
@@ -29,16 +29,15 @@ func (returnData ServerListReturnData) AddAndUpdateServer(c *gin.Context) {
 		return
 	}
 
-	service.AddAndUpdateServerList(serverId, serverType, ip, port,status,true)
+	service.ServerListPtr.AddOrUpdateServerList(serverId, serverType, ip, port,status)
 
-	returnData.OtherData = service.OtherServerListData
+	returnData.OtherData = service.ServerListPtr.Server
 	c.JSON(http.StatusOK, returnData)
-
 }
 
 func (returnData ServerListReturnData) GetList(c *gin.Context) {
-	returnData   = initReturnData()
-	returnData.OtherData = service.OtherServerListData
+	returnData = initReturnData()
+	returnData.OtherData = service.ServerListPtr.Server
 	c.JSON(http.StatusOK, returnData)
 }
 
@@ -48,6 +47,6 @@ func initReturnData() ServerListReturnData {
 			enum.STATUS_SUCC,
 			config.Success,
 		},
-		OtherData:[]*service.ServerList{},
+		OtherData:[]service.Server{},
 	}
 }

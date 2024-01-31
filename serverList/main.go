@@ -6,39 +6,29 @@ import (
 	"serverList/model"
 	"serverList/router"
 	"serverList/service"
-	"sync"
 )
 
 func main() {
 	//建立mysql链接
-	var mysqlChanWg sync.WaitGroup
-	checkMysqlChan := make(chan string, 1)
-	mysqlChanWg.Add(1)
-	go model.InitModel(&checkMysqlChan, &mysqlChanWg)
-	mysqlChanWg.Wait()
-
-	checkMsg := <-checkMysqlChan
-	//不用了可以关闭哦
-	close(checkMysqlChan)
-	fmt.Println("init model result :" + checkMsg)
-	if checkMsg != "success"{
-		fmt.Println(checkMsg)
+	_,sqlErr := model.InitSqlPool()
+	if sqlErr != nil{
+		fmt.Println(sqlErr.Error())
 		return
 	}
 
 	//初始化serverlist数据
-	resInitServer, resInitServerMsg := service.InitServerList()
-	if resInitServer == false {
-		fmt.Println(resInitServerMsg)
+	resInitServer 	:= service.InitServerList()
+	if resInitServer != nil {
+		fmt.Println(resInitServer.Error())
 		return
 	}
 
 	//初始化公告数据
-	resInitNotice, resInitNoticeMsg := service.InitServerNotice()
-	if resInitNotice == false {
-		fmt.Println(resInitNoticeMsg)
-		return
-	}
+	//resInitNotice, resInitNoticeMsg := service.InitServerNotice()
+	//if resInitNotice == false {
+	//	fmt.Println(resInitNoticeMsg)
+	//	return
+	//}
 
 	//初始化rmq
 	_ , rmqError := service.NewRabbitMQConnectionPool(config.RMQ_CON_NUM)

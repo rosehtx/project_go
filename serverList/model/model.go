@@ -11,33 +11,58 @@ import (
 	"time"
 )
 
-var Db *gorm.DB
+//mysql连接池
+type SqlPool struct {
+	pool      chan *gorm.DB
+	poolSize  int
+	available int//可用的连接数
+	mu        sync.Mutex
+}
+var SqlPoolPtr *SqlPool
 
-func InitModel(ch *chan string, wg *sync.WaitGroup) {
-	fmt.Println("----init mysql start----")
-	//链接mysql
-	dsn := config.MysqlUser + ":" + config.MysqlPass + "@tcp(" + config.MysqlIp + ":" + strconv.Itoa(config.MysqlPort) + ")/serverlist?charset=utf8mb4&parseTime=True&loc=Local"
-	var err error
-	Db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
-
-	defer wg.Done()
-
-	if err != nil {
-		*ch <- err.Error()
-		return
+//初始化mysql连接池
+func InitSqlPool() (*SqlPool,error){
+	pool  := make(chan *gorm.DB,config.MysqlConNum)
+	for i := 0; i < config.MysqlConNum; i++ {
+		fmt.Println("----init mysql start "+strconv.Itoa(i)+"----")
+		dsn := config.MysqlUser + ":" + config.MysqlPass + "@tcp(" + config.MysqlIp + ":" + strconv.Itoa(config.MysqlPort) + ")/serverlist?charset=utf8mb4&parseTime=True&loc=Local"
+		Db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err != nil{
+			return nil,err
+		}
+		sqlDB, _ := Db.DB()
+		go pingDb(sqlDB)
+		pool <- Db
 	}
-	sqlDB, errDb := Db.DB()
-	if errDb != nil {
-		*ch <- errDb.Error()
-		return
+
+	SqlPoolPtr = &SqlPool{
+		pool:      pool,
+		poolSize:  config.MysqlConNum,
+		available: config.MysqlConNum,
 	}
-	fmt.Println("----ticker ping mysql start----")
-	go pingDb(sqlDB)
-	fmt.Println("----ticker ping mysql end----")
-	*ch <- "success"
-	fmt.Println("----init mysql end----")
+	return SqlPoolPtr,nil
 }
 
+//获取mysql连接
+func (sql *SqlPool) GetMysqlConn() (*gorm.DB,error) {
+	sql.mu.Lock()
+	defer sql.mu.Unlock()
+	if sql.available == 0 {
+		return nil,fmt.Errorf("mysql连接池已满")
+	}
+	sql.available--
+	return <-sql.pool,nil
+}
+
+//放回mysql连接
+func (sql *SqlPool) ReleaseMysqlConn(db *gorm.DB) {
+	sql.mu.Lock()
+	defer sql.mu.Unlock()
+	sql.available++
+	sql.pool <- db
+}
+
+//ping mysql
 func pingDb(sqlDB *sql.DB) {
 	tickerDb := time.NewTicker(20 * time.Second)
 	for {

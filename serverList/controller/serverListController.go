@@ -15,7 +15,7 @@ type ServerListReturnData struct {
 }
 
 func (returnData ServerListReturnData) AddOrUpdateServerList(c *gin.Context) {
-	returnData = initReturnData()
+	initReturnData(&returnData)
 	serverId, _ := strconv.Atoi(c.DefaultQuery("serverId", "0"))
 	serverType, _ := strconv.Atoi(c.DefaultQuery("type", "0"))
 	ip := c.Query("ip")
@@ -36,16 +36,16 @@ func (returnData ServerListReturnData) AddOrUpdateServerList(c *gin.Context) {
 }
 
 func (returnData ServerListReturnData) GetList(c *gin.Context) {
-	returnData = initReturnData()
+	initReturnData(&returnData)
 	returnData.OtherData = service.ServerListPtr.Server
 	c.JSON(http.StatusOK, returnData)
 }
 
-func initReturnData() ServerListReturnData {
-	return ServerListReturnData{
+func initReturnData(returnData *ServerListReturnData) {
+	returnData = &ServerListReturnData{
 		CommonReturnData:CommonReturnData{
-			enum.STATUS_SUCC,
-			config.Success,
+		enum.STATUS_SUCC,
+		config.Success,
 		},
 		OtherData:[]service.Server{},
 	}

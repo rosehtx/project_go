@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"log"
-	"reflect"
 	"serverList/config"
 	"strconv"
 	"sync"
@@ -228,14 +227,18 @@ func BasicConsumer(queueName string){
 	// 处理消息
 	for msg := range msgs {
 		// 处理消息的逻辑
-		rmqConsumer  := config.RabbitmqBasicConsumer[queueName]
-		values 		 := reflect.ValueOf(rmqConsumer).MethodByName("BasicConsumer").Call([]reflect.Value{reflect.ValueOf(msg.Body)})
+		rmqConsumer  		:= config.RabbitmqBasicConsumer[queueName]
+		//方案一：直接调用
+		result,errResult 	:= rmqConsumer.BasicConsumer(msg.Body)
 
-		result 		:= values[0].Interface().(bool)
-		errResult  	:= values[1].Interface()//error得分开断言
+		//方案二：采用反射
+		//values 		:= reflect.ValueOf(rmqConsumer).MethodByName("BasicConsumer").Call([]reflect.Value{reflect.ValueOf(msg.Body)})
+		//result 		:= values[0].Interface().(bool)
+		//errResult  	:= values[1].Interface()//error得分开断言
+
 		var myError error
 		if result ==  false {
-			myError = errResult.(error)
+			myError = errResult.(error)//这边采用反射才用到
 			fmt.Println("myError : " + myError.Error())
 			//requeue=false消息将被丢弃如果绑定死信则丢弃并扔到死信
 			err = msg.Nack(false,false)

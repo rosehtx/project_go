@@ -30,6 +30,8 @@ func main() {
 	//	return
 	//}
 
+	//初始化jaeger
+
 	//初始化rmq
 	_ , rmqError := service.NewRabbitMQConnectionPool(config.RMQ_CON_NUM)
 	if rmqError != nil{

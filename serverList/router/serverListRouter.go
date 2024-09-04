@@ -7,7 +7,7 @@ import (
 )
 
 func initServerListRouter(e *gin.Engine) {
-	routeServer := controller.ServerListReturnData{}
+	routeServer := controller.InitReturnData()
 	//(1)注册方法一  利用反射
 	Routers = append(Routers, Router{
 		path:       "/server/addOrUpdateServer", //路由
@@ -19,4 +19,8 @@ func initServerListRouter(e *gin.Engine) {
 	//(2)注册方法二  直接注册不过这边有新的controller话不停的添加
 	e.GET("/server/getList", routeServer.GetList)
 	//e.POST("/server/initServerList", routeServer.InitServerList)
+
+	//e.GET("/server/test", routeServer.Test)
+	//使用jaeger中间件 链路追踪
+	e.Use(InitJaegerMiddleware()).GET("/server/test", routeServer.Test)
 }

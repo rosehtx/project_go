@@ -26,6 +26,7 @@ func InitRouter() *gin.Engine  {
 	r := gin.Default()
 	//这边去注册路由
 	Bind(r)
+
 	return r
 }
 
@@ -54,3 +55,4 @@ func match(Method reflect.Value) gin.HandlerFunc {
 		Method.Call(arguments)
 	}
 }
+

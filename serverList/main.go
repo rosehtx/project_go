@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"serverList/config"
 	"serverList/model"
 	"serverList/router"
 	"serverList/service"
+	"serverList/utils"
 )
 
 func main() {
@@ -31,19 +31,24 @@ func main() {
 	//}
 
 	//初始化jaeger
-
-	//初始化rmq
-	_ , rmqError := service.NewRabbitMQConnectionPool(config.RMQ_CON_NUM)
-	if rmqError != nil{
-		fmt.Println("start server error" + rmqError.Error())
+	jaegerErr := utils.NewJaegerPool(5)
+	if jaegerErr != nil{
+		fmt.Println("init jaeger error:" + jaegerErr.Error())
 		return
 	}
-	//初始化rmq消费者
-	for queueName, _ := range config.RabbitmqBasicConsumer {
-		for i := 0; i < config.RMQ_CONSUME_NUM; i++ {
-			go service.BasicConsumer(queueName)
-		}
-	}
+
+	//初始化rmq
+	//_ , rmqError := service.NewRabbitMQConnectionPool(config.RMQ_CON_NUM)
+	//if rmqError != nil{
+	//	fmt.Println("start server error" + rmqError.Error())
+	//	return
+	//}
+	////初始化rmq消费者
+	//for queueName, _ := range config.RabbitmqBasicConsumer {
+	//	for i := 0; i < config.RMQ_CONSUME_NUM; i++ {
+	//		go service.BasicConsumer(queueName)
+	//	}
+	//}
 
 	//初始化路由
 	r 	:= router.InitRouter()

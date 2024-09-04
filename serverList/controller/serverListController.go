@@ -14,8 +14,7 @@ type ServerListReturnData struct {
 	OtherData []service.Server `json:"data"`
 }
 
-func (returnData ServerListReturnData) AddOrUpdateServerList(c *gin.Context) {
-	initReturnData(&returnData)
+func (returnData *ServerListReturnData) AddOrUpdateServerList(c *gin.Context) {
 	serverId, _ := strconv.Atoi(c.DefaultQuery("serverId", "0"))
 	serverType, _ := strconv.Atoi(c.DefaultQuery("type", "0"))
 	ip := c.Query("ip")
@@ -35,17 +34,21 @@ func (returnData ServerListReturnData) AddOrUpdateServerList(c *gin.Context) {
 	c.JSON(http.StatusOK, returnData)
 }
 
-func (returnData ServerListReturnData) GetList(c *gin.Context) {
-	initReturnData(&returnData)
+func (returnData *ServerListReturnData) GetList(c *gin.Context) {
 	returnData.OtherData = service.ServerListPtr.Server
 	c.JSON(http.StatusOK, returnData)
 }
 
-func initReturnData(returnData *ServerListReturnData) {
-	returnData = &ServerListReturnData{
+func (returnData *ServerListReturnData) Test(c *gin.Context) {
+	//defer utils.CreateTracerLog("Server","func","thisIsTag","desc")
+	c.JSON(http.StatusOK, returnData)
+}
+
+func InitReturnData() *ServerListReturnData{
+	return &ServerListReturnData{
 		CommonReturnData:CommonReturnData{
-		enum.STATUS_SUCC,
-		config.Success,
+			enum.STATUS_SUCC,
+			config.Success,
 		},
 		OtherData:[]service.Server{},
 	}

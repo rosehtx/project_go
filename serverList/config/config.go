@@ -22,3 +22,10 @@ const (
 	RMQ_QOS 		= 2//qos 一个消费者同时消费的消息数量
 	RMQ_CONSUME_NUM = 1//每个队列对应消费者的数量,最好是1对1消费
 )
+
+//jaeger配置
+const (
+	JAEGER_POOL_SIZE 	= 20
+	JAEGER_SERVICE_NAME = "serverRoute"
+	JAEGER_IP_PORT 		= "192.168.44.127:6831"
+)

@@ -4,24 +4,23 @@ import (
 	"fmt"
 	"serverList/model"
 	"serverList/router"
-	"serverList/service"
 	"serverList/utils"
 )
 
 func main() {
 	//建立mysql链接
-	_,sqlErr := model.InitSqlPool()
+	sqlErr := model.InitSqlPool()
 	if sqlErr != nil{
 		fmt.Println(sqlErr.Error())
 		return
 	}
 
 	//初始化serverlist数据
-	resInitServer 	:= service.InitServerList()
-	if resInitServer != nil {
-		fmt.Println(resInitServer.Error())
-		return
-	}
+	//resInitServer 	:= service.InitServerList()
+	//if resInitServer != nil {
+	//	fmt.Println(resInitServer.Error())
+	//	return
+	//}
 
 	//初始化公告数据
 	//resInitNotice, resInitNoticeMsg := service.InitServerNotice()

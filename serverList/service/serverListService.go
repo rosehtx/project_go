@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	daoServerList "serverList/dao"
 	"sync"
 )
@@ -71,7 +72,7 @@ func InitServerList() error {
 			//Status:modelServer.Status,
 		})
 	}
-
+	fmt.Println("获取serverList结果:",sSlice)
 	ServerListPtr = &ServerList{
 		Server:sSlice,
 	}

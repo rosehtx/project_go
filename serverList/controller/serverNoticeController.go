@@ -15,7 +15,6 @@ type ServerNoticeReturnData struct {
 }
 
 func (noticeReturnData ServerNoticeReturnData) GetNotice (c *gin.Context){
-	noticeReturnData   = initNoticeReturnData()
 	serverId, _ := strconv.Atoi(c.DefaultQuery("serverId", "0"))
 	if serverId == 0 {
 		noticeReturnData.Status = enum.STATUS_FAIL
@@ -23,29 +22,32 @@ func (noticeReturnData ServerNoticeReturnData) GetNotice (c *gin.Context){
 		c.JSON(http.StatusOK, noticeReturnData)
 		return
 	}
-	noticeReturnData.OtherData.ServerId = serverId
-	notice, checkNotice := service.ServerNoticeMap[serverId]
-	if checkNotice != false{
-		noticeReturnData.OtherData.Notice   = notice
+	//获取公告
+	service.NoticeOperationChan <- service.NoticeOperation{
+		Action 		: enum.MAP_GET,
+		ServerId 	: serverId,
 	}
+	resNotice := <-service.NoticeOperationResultChan
+	noticeReturnData.OtherData.ServerId = serverId
+	noticeReturnData.OtherData.Notice   = resNotice.Notice
 	c.JSON(http.StatusOK, noticeReturnData)
 }
 
 //直接结束公告
 func (noticeReturnData ServerNoticeReturnData) EndNotice (c *gin.Context){
-	noticeReturnData   = initNoticeReturnData()
 	serverId, _ := strconv.Atoi(c.DefaultQuery("serverId", "0"))
 	if serverId == 0 {
-		noticeReturnData.Status = enum.STATUS_FAIL
-		noticeReturnData.Msg 	  = config.ParamError
+		noticeReturnData.Status	= enum.STATUS_FAIL
+		noticeReturnData.Msg  	= config.ParamError
 		c.JSON(http.StatusOK, noticeReturnData)
 		return
 	}
 	service.EndServerNotice(serverId)
+	noticeReturnData.OtherData  = nil
 	c.JSON(http.StatusOK, noticeReturnData)
 }
 
-func initNoticeReturnData() ServerNoticeReturnData {
+func InitNoticeReturnData() ServerNoticeReturnData {
 	return ServerNoticeReturnData{
 		CommonReturnData:CommonReturnData{
 			enum.STATUS_SUCC,

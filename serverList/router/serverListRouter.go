@@ -20,7 +20,7 @@ func initServerListRouter(e *gin.Engine) {
 	e.GET("/server/getList", routeServer.GetList)
 	//e.POST("/server/initServerList", routeServer.InitServerList)
 
-	//e.GET("/server/test", routeServer.Test)
+	e.GET("/server/test", routeServer.Test)
 	//使用jaeger中间件 链路追踪
-	e.Use(InitJaegerMiddleware()).GET("/server/test", routeServer.Test)
+	//e.Use(InitJaegerMiddleware()).GET("/server/test", routeServer.Test)
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"serverList/model"
 	"serverList/router"
-	"serverList/utils"
+	"serverList/service"
 )
 
 func main() {
@@ -16,25 +16,25 @@ func main() {
 	}
 
 	//初始化serverlist数据
-	//resInitServer 	:= service.InitServerList()
-	//if resInitServer != nil {
-	//	fmt.Println(resInitServer.Error())
-	//	return
-	//}
-
-	//初始化公告数据
-	//resInitNotice, resInitNoticeMsg := service.InitServerNotice()
-	//if resInitNotice == false {
-	//	fmt.Println(resInitNoticeMsg)
-	//	return
-	//}
-
-	//初始化jaeger
-	jaegerErr := utils.NewJaegerPool(5)
-	if jaegerErr != nil{
-		fmt.Println("init jaeger error:" + jaegerErr.Error())
+	resInitServer 	:= service.InitServerList()
+	if resInitServer != nil {
+		fmt.Println(resInitServer.Error())
 		return
 	}
+
+	//初始化公告数据
+	resInitNotice := service.InitServerNotice()
+	if resInitNotice != nil {
+		fmt.Printf("初始化公告异常:%s",resInitNotice.Error())
+		return
+	}
+
+	//初始化jaeger
+	//jaegerErr := utils.NewJaegerPool(5)
+	//if jaegerErr != nil{
+	//	fmt.Println("init jaeger error:" + jaegerErr.Error())
+	//	return
+	//}
 
 	//初始化rmq
 	//_ , rmqError := service.NewRabbitMQConnectionPool(config.RMQ_CON_NUM)

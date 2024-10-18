@@ -6,7 +6,7 @@ import (
 )
 
 func initServerNoticeRouter(e *gin.Engine) {
-	route := controller.ServerNoticeReturnData{}
+	route := controller.InitNoticeReturnData()
 	e.GET("/notice/getNotice", route.GetNotice)
 	e.GET("/notice/endNotice", route.EndNotice)
 }

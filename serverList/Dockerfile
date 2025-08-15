@@ -20,11 +20,12 @@
 FROM 127.0.0.1:5000/golang:1.18.2 AS builder
 WORKDIR /app
 COPY . .
-# 编译项目
-RUN GOOS=linux go build -v -o serverList .
+# 编译项目 得加CGO_ENABLED=0 不然k8s运行pod的时候会失败,找不到serverList可执行文件,alpine的问题
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o serverList .
 
 # 运行阶段
 FROM 127.0.0.1:5000/alpine:latest
 WORKDIR /app
 COPY --from=builder /app/serverList .
+RUN chmod +x serverList
 CMD ["./serverList"]

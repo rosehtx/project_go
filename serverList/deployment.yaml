@@ -1,0 +1,20 @@
+# kubectl apply -f deployment.yaml
+apiVersion: apps/v1
+kind: Deployment # 资源类型为 Deployment
+metadata:
+  name: serverlist-deployment # Deployment 的名称
+spec:
+  replicas: 3 # 指定 Pod 的副本数（3 个实例）
+  selector:
+    matchLabels:
+      app: serverlist # 匹配 Pod 的标签（需与 template.metadata.labels 一致）
+  template:   # 定义 Pod 的模板
+    metadata:
+      labels:
+        app: serverlist # 给 Pod 打上标签（用于 Service 选择）
+    spec:
+      containers:
+      - name: serverlist # 容器名称
+        image: rosehtx/serverlist:v1.2 # 容器镜像
+        ports:
+        - containerPort: 8090  # 假设你的 Go 项目监听 8090 端口

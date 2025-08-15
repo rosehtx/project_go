@@ -1,0 +1,17 @@
+# kubectl apply -f service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: serverlist-service
+spec:
+  selector: #选择器，匹配要暴露的 Pod
+    app: serverlist
+  ports:
+    - protocol: TCP
+      port: 9090 #Service 端口（对外提供的端口）
+      targetPort: 8090 #Pod 容器端口（Pod 内实际监听端口）
+      nodePort: 30090
+  type: NodePort
+  #LoadBalancer：云平台下为服务分配一个外部负载均衡器,
+  #ClusterIP（默认）：集群内部访问
+  #NodePort：集群外部访问

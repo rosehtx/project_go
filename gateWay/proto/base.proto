@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+//注重要 : 带上go项目的完整路径，跨package import的时候会直接引用该路径 ;后面是package名
+option go_package = "gateWay/proto/rpcPb;rpcPb";
+
+import "google/protobuf/any.proto";
+
+service BaseMessage {
+  rpc GetBaseMessage (BaseRequest) returns (BaseResponse) {}
+}
+
+message BaseRequest {
+  string server  = 1; // 可以指定目标服务名
+  string service = 2; // 可以指定目标服务 服务层
+  string method  = 3;  // 可以指定rpc方法名
+  google.protobuf.Any payload = 4; // 实际消息体
+}
+
+message BaseResponse {
+  int32 code = 1;
+  string msg = 2;
+  google.protobuf.Any payload = 3; // 返回消息体
+}
+
+

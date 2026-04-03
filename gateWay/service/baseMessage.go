@@ -27,32 +27,41 @@ func NewBaseMessageServer() *BaseMessageServer {
 	return server
 }
 
+// sendResp 向调用方回写唯一一次结果；若 ctx 已取消则不再阻塞 worker
+func sendResp(task *DispatchTask, resp *rpcPb.BaseResponse) {
+	if task == nil || resp == nil {
+		return
+	}
+	select {
+	case task.respChan <- resp:
+	case <-task.ctx.Done():
+	}
+}
+
 func (server *BaseMessageServer) worker() {
-	//监控taskChan
 	for task := range server.taskChan {
-		// 这里做实际的分发逻辑（如根据BaseRequest.Service/Method路由到后端）
 		requestData := task.request
 		serverName := requestData.GetServer()
 
-		//获取对应的连接
-		conn, exists := GetServerCon(serverName)
-		if exists == false {
-			task.respChan <- &rpcPb.BaseResponse{
+		conn, ok := GetServerCon(serverName)
+		if !ok {
+			sendResp(task, &rpcPb.BaseResponse{
 				Code: 404,
 				Msg:  "后端服务未注册: " + serverName,
-			}
+			})
+			continue
 		}
-		//分发
+
 		clint := rpcPb.NewBaseMessageClient(conn)
 		resp, err := clint.GetBaseMessage(task.ctx, requestData)
 		if err != nil {
-			task.respChan <- &rpcPb.BaseResponse{
+			sendResp(task, &rpcPb.BaseResponse{
 				Code: 500,
 				Msg:  err.Error(),
-			}
+			})
+			continue
 		}
-		// 回传响应
-		task.respChan <- resp
+		sendResp(task, resp)
 	}
 }
 
@@ -63,10 +72,8 @@ func (server *BaseMessageServer) GetBaseMessage(ctx context.Context, requestData
 		request:  requestData,
 		respChan: respChan,
 	}
-	// 投递到异步分发队列
 	server.taskChan <- task
 
-	// 阻塞等待worker处理并返回结果（支持超时）
 	select {
 	case resp := <-respChan:
 		return resp, nil
